@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="sinosoft.project.dao.QcPointMapper" >
+  <resultMap id="BaseResultMap" type="sinosoft.project.entity.QcPoint" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="BUSINESSNO" property="businessno" jdbcType="VARCHAR" />
+    <result column="qcid" property="qcid" jdbcType="VARCHAR" />
+    <result column="MainPointID" property="mainpointid" jdbcType="VARCHAR" />
+    <result column="describe_ids" property="describeIds" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="operaator" property="operaator" jdbcType="VARCHAR" />
+    <result column="create_datetime" property="createDatetime" jdbcType="TIMESTAMP" />
+    <result column="modify_datetime" property="modifyDatetime" jdbcType="TIMESTAMP" />
+    <result column="attribute" property="attribute" jdbcType="TIMESTAMP" />
+    <result column="POINTATTENTION" property="pointAttention" jdbcType="VARCHAR" />
+    <result column="DESCRIBETEXT" property="describeText" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, BUSINESSNO, qcid, MainPointID, describe_ids, status, operaator, create_datetime, 
+    modify_datetime
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from es_qc_point
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByBeforeBusson" parameterType="java.lang.String" resultMap="BaseResultMap">
+  		select MainPointID, describe_ids,attribute,POINTATTENTION,DESCRIBETEXT from es_qc_point where BUSINESSNO=#{0} and status='0'
+  </select>
+  <select id="selectByBeforeBussonTotal" parameterType="java.lang.String" resultType="java.lang.Integer">
+  		select count(0) total from es_qc_point where BUSINESSNO=#{0} and status='0'
+  </select>
+  <select id="selectByFilter" parameterType="java.lang.String" resultType="sinosoft.project.qcac.vo.QcPointVo">
+  SELECT
+										esc.ID idor ,esc.MainPointID pointid,
+										(select ldp.mainPoint_name from ld_point ldp where esc.MainPointID=ldp.mainPoint_id) pointtext,
+										esc.describe_ids tallid,
+										ESC.DESCRIBETEXT talltext,
+										esc.status,
+										esc.checkd,
+										esc.POINTATTENTION pointAttention,
+										esc.imgTimePointOrder
+									FROM
+										es_qc_point esc
+									WHERE
+esc.BUSINESSNO=#{businessno}
+  and 1=1
+  <if test="status!=null and status!=1 ">
+  		and esc.status=#{status}
+  </if>
+   order by esc.describe_ids
+  </select>
+  <select id="ByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap" >
+  		select BUSINESSNO, qcid, MainPointID, describe_ids,status from es_qc_point where id=#{0}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from es_qc_point
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="sinosoft.project.entity.QcPoint" >
+    insert into es_qc_point (id, BUSINESSNO, qcid, 
+      MainPointID, describe_ids, status, 
+      operaator, create_datetime, modify_datetime
+      )
+    values (#{id,jdbcType=VARCHAR}, #{businessno,jdbcType=VARCHAR}, #{qcid,jdbcType=VARCHAR}, 
+      #{mainpointid,jdbcType=VARCHAR}, #{describeIds,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
+      #{operaator,jdbcType=VARCHAR}, #{createDatetime,jdbcType=TIMESTAMP}, #{modifyDatetime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+   <insert id="insertBatch"  parameterType="java.util.List">
+  		insert into es_qc_point (id, BUSINESSNO, qcid, 
+      		MainPointID, describe_ids, status, 
+      		operaator, create_datetime, modify_datetime,POINTATTENTION,DESCRIBETEXT,IMGTIMEPOINTORDER
+  		)
+  	<foreach collection="list" item="item" index="index" separator="union all" >  
+      (select #{item.id,jdbcType=VARCHAR}, #{item.businessno,jdbcType=VARCHAR}, #{item.qcid,jdbcType=VARCHAR}, 
+      #{item.mainpointid,jdbcType=VARCHAR}, #{item.describeIds,jdbcType=VARCHAR}, #{item.status,jdbcType=VARCHAR}, 
+      #{item.operaator,jdbcType=VARCHAR}, #{item.createDatetime,jdbcType=TIMESTAMP}, #{item.modifyDatetime,jdbcType=TIMESTAMP},
+      #{item.pointAttention,jdbcType=VARCHAR},#{item.describeText,jdbcType=VARCHAR},#{item.imgTimePointOrder,jdbcType=VARCHAR} from dual) 	
+    </foreach>  
+  </insert>
+  <update id="updateBybussno" parameterType="java.lang.String">
+  		update es_qc_point set qcid=#{0} where BUSINESSNO=#{1}
+  </update>
+  <update id="updateStatusByNoExistsId" parameterType="java.lang.String">
+  		update es_qc_point set status='' where id not in (${ids}) and businessno=#{1}
+  </update>
+  <update id="updateStatusByBusinessno" parameterType="java.lang.String">
+  		update es_qc_point set status='' where businessno=#{0}
+  </update>
+  <update id="updateByStatusNull" parameterType="java.lang.String">
+  		update es_qc_point set status=null where id=#{0}
+  </update> 
+  <update id="updateCheck" parameterType="map">
+  		update es_qc_point set 
+  		checkd='1',
+  		operaator=#{qcpoint.operaator},
+  		modify_datetime=#{qcpoint.modifyDatetime} where businessno=#{qcpoint.businessno}
+  </update>
+  <update id="updateCheck1" parameterType="map">
+  		update es_qc_point set 
+  		operaator=#{qcpoint.operaator},
+  		modify_datetime=#{qcpoint.modifyDatetime} where businessno=#{qcpoint.businessno}
+  </update>
+  <insert id="insertSelective" parameterType="sinosoft.project.entity.QcPoint" >
+    insert into es_qc_point
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="businessno != null" >
+        BUSINESSNO,
+      </if>
+      <if test="qcid != null" >
+        qcid,
+      </if>
+      <if test="mainpointid != null" >
+        MainPointID,
+      </if>
+      <if test="describeIds != null" >
+        describe_ids,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="operaator != null" >
+        operaator,
+      </if>
+      <if test="createDatetime != null" >
+        create_datetime,
+      </if>
+      <if test="modifyDatetime != null" >
+        modify_datetime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="businessno != null" >
+        #{businessno,jdbcType=VARCHAR},
+      </if>
+      <if test="qcid != null" >
+        #{qcid,jdbcType=VARCHAR},
+      </if>
+      <if test="mainpointid != null" >
+        #{mainpointid,jdbcType=VARCHAR},
+      </if>
+      <if test="describeIds != null" >
+        #{describeIds,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="operaator != null" >
+        #{operaator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDatetime != null" >
+        #{createDatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyDatetime != null" >
+        #{modifyDatetime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="sinosoft.project.entity.QcPoint" >
+    update es_qc_point
+    <set >
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="sinosoft.project.entity.QcPoint" >
+    update es_qc_point
+    set BUSINESSNO = #{businessno,jdbcType=VARCHAR},
+      qcid = #{qcid,jdbcType=VARCHAR},
+      MainPointID = #{mainpointid,jdbcType=VARCHAR},
+      describe_ids = #{describeIds,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      operaator = #{operaator,jdbcType=VARCHAR},
+      create_datetime = #{createDatetime,jdbcType=TIMESTAMP},
+      modify_datetime = #{modifyDatetime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
